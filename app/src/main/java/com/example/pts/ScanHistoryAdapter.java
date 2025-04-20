@@ -9,14 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class ScanHistoryAdapter extends RecyclerView.Adapter<ScanHistoryAdapter.ScanHistoryViewHolder> {
-    private ArrayList<PortScanResult> scans = new ArrayList<>();
 
-    public void setScans(ArrayList<PortScanResult> scans) {
+    private List<ScanHistory> scans;
+
+    public void setScans(List<ScanHistory> scans) {
         this.scans = scans;
         notifyDataSetChanged();
     }
@@ -36,11 +37,11 @@ public class ScanHistoryAdapter extends RecyclerView.Adapter<ScanHistoryAdapter.
 
     @Override
     public int getItemCount() {
-        return scans.size();
+        return (scans != null) ? scans.size() : 0;
     }
 
     static class ScanHistoryViewHolder extends RecyclerView.ViewHolder {
-        private TextView targetText, resultsText, errorText, dateText;
+        private final TextView targetText, resultsText, errorText, dateText;
 
         public ScanHistoryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -50,21 +51,18 @@ public class ScanHistoryAdapter extends RecyclerView.Adapter<ScanHistoryAdapter.
             dateText = itemView.findViewById(R.id.date_text);
         }
 
-        public void bind(PortScanResult scan) {
+        public void bind(ScanHistory scan) {
             targetText.setText(scan.target);
-            resultsText.setText(scan.output);
-            errorText.setText(scan.error != null ? scan.error : "No errors");
+            resultsText.setText(scan.results);
+            errorText.setText(scan.error != null ? scan.error : "No error");
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
             try {
-                SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                Date date = parser.parse(scan.timestamp);
-                SimpleDateFormat displayFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
-                dateText.setText(displayFormat.format(date));
+                Date date = new Date(scan.timestamp);
+                String formatted = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(date);
+                dateText.setText(formatted);
             } catch (Exception e) {
                 dateText.setText("Invalid date");
             }
-
         }
     }
 }

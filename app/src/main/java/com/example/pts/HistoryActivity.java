@@ -4,7 +4,9 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.ArrayList;
+import androidx.room.Room;
+
+import java.util.List;
 
 public class HistoryActivity extends AppCompatActivity {
 
@@ -19,7 +21,12 @@ public class HistoryActivity extends AppCompatActivity {
         ScanHistoryAdapter adapter = new ScanHistoryAdapter();
         recyclerView.setAdapter(adapter);
 
-        ArrayList<PortScanResult> history = (ArrayList<PortScanResult>) getIntent().getSerializableExtra("history");
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "pts-db")
+                .fallbackToDestructiveMigration()
+                .allowMainThreadQueries()
+                .build();
+
+        List<ScanHistory> history = db.scanDao().getAll();
         adapter.setScans(history);
     }
 }

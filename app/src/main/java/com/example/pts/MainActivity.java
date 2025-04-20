@@ -8,11 +8,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import retrofit2.Call;
@@ -22,14 +21,17 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "ScanResult";
-    private final List<PortScanResult> historyList = new ArrayList<>();
-
-
+    private AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "pts-db")
+                .fallbackToDestructiveMigration()
+                .allowMainThreadQueries()
+                .build();
 
         TextInputEditText urlInput = findViewById(R.id.url_input);
         Button scanButton = findViewById(R.id.scan_button);
@@ -43,12 +45,11 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please enter a target", Toast.LENGTH_SHORT).show();
             }
         });
+
         historyButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
-            intent.putExtra("history", new ArrayList<>(historyList));
             startActivity(intent);
         });
-
     }
 
     private void performScan(String target) {
@@ -82,12 +83,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void saveToHistory(String target, String output, String error) {
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        PortScanResult result = new PortScanResult(target, output, error, timestamp);
-        historyList.add(result);
-        Log.d("ScanHistory", "Saved: " + target + " at " + timestamp);
+        ScanHistory scan = new ScanHistory(target, output, error);
+        db.scanDao().insert(scan);
     }
-
-
 }
